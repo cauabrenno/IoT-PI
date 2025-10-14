@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard de Monitoramento</title>
+    <style>
+        /* CSS Básico para o visual */
+        body { font-family: sans-serif; background-color: #f0f2f5; color: #333; }
+        .dashboard h1{display: flex; justify-content: center;}
+        .dashboard { max-width: 600px; margin: 40px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card { padding: 15px; margin-bottom: 10px; border-radius: 5px; text-align: center; }
+        .card h2 { margin-top: 0; font-size: 1.2em; color: #555; }
+        .card p { font-size: 2.5em; font-weight: bold; margin-bottom: 0; }
+        .normal { background-color: #e8f5e9; color: #2e7d32; }
+        .alerta { background-color: #fff3e0; color: #ef6c00; }
+        .perigo { background-color: #ffebee; color: #c62828; }
+        .timestamp { text-align: center; margin-top: 20px; font-style: italic; color: #888; }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <h1>Status do Monitoramento</h1>
+
+        <div id="card-umidade" class="card">
+            <h2>Umidade do Solo</h2>
+            <p id="valor-umidade">--</p>
+        </div>
+
+        <div id="card-vibracao" class="card">
+            <h2>Vibração</h2>
+            <p id="valor-vibracao">--</p>
+        </div>
+
+        <div id="card-botao" class="card">
+            <h2>Alerta Manual</h2>
+            <p id="valor-botao">--</p>
+        </div>
+
+        <p class="timestamp">Última atualização: <span id="timestamp">Nunca</span></p>
+    </div>
+
+    <script>
+        // JavaScript para buscar e atualizar os dados
+        async function buscarDados() {
+            try {
+                const response = await fetch('/api/ultimos_dados'); // Pede os dados ao nosso servidor Flask
+                const dados = await response.json();
+
+                // Atualiza os valores na tela
+                document.getElementById('valor-umidade').innerText = dados.umidade;
+                document.getElementById('valor-vibracao').innerText = (dados.vibracao === 1) ? "Detectada" : "Normal";
+                document.getElementById('valor-botao').innerText = (dados.botao === 1) ? "ACIONADO!" : "Inativo";
+                document.getElementById('timestamp').innerText = new Date(dados.timestamp).toLocaleString('pt-BR');
+
+                // Lógica para mudar as cores dos cards
+                const cardVibracao = document.getElementById('card-vibracao');
+                const cardBotao = document.getElementById('card-botao');
+
+                cardVibracao.className = 'card ' + (dados.vibracao === 1 ? 'perigo' : 'normal');
+                cardBotao.className = 'card ' + (dados.botao === 1 ? 'perigo' : 'normal');
+
+            } catch (error) {
+                console.error("Erro ao buscar dados:", error);
+            }
+        }
+
+        // Chama a função pela primeira vez e depois a cada 3 segundos
+        buscarDados();
+        setInterval(buscarDados, 3000); // 3000 milissegundos = 3 segundos
+    </script>
+</body>
+</html>
