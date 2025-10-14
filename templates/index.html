@@ -7,21 +7,23 @@
     <style>
         /* CSS Básico para o visual */
         body { font-family: sans-serif; background-color: #f0f2f5; color: #333; }
-        .dashboard h1{display: flex; justify-content: center;}
         .dashboard { max-width: 600px; margin: 40px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .card { padding: 15px; margin-bottom: 10px; border-radius: 5px; text-align: center; }
+        .card { padding: 15px; margin-bottom: 10px; border-radius: 5px; text-align: center; transition: background-color 0.5s ease; }
         .card h2 { margin-top: 0; font-size: 1.2em; color: #555; }
         .card p { font-size: 2.5em; font-weight: bold; margin-bottom: 0; }
+        
+        /* Nossas classes de estado */
         .normal { background-color: #e8f5e9; color: #2e7d32; }
         .alerta { background-color: #fff3e0; color: #ef6c00; }
         .perigo { background-color: #ffebee; color: #c62828; }
+        
         .timestamp { text-align: center; margin-top: 20px; font-style: italic; color: #888; }
     </style>
 </head>
 <body>
     <div class="dashboard">
         <h1>Status do Monitoramento</h1>
-
+        
         <div id="card-umidade" class="card">
             <h2>Umidade do Solo</h2>
             <p id="valor-umidade">--</p>
@@ -31,7 +33,7 @@
             <h2>Vibração</h2>
             <p id="valor-vibracao">--</p>
         </div>
-
+        
         <div id="card-botao" class="card">
             <h2>Alerta Manual</h2>
             <p id="valor-botao">--</p>
@@ -44,19 +46,44 @@
         // JavaScript para buscar e atualizar os dados
         async function buscarDados() {
             try {
-                const response = await fetch('/api/ultimos_dados'); // Pede os dados ao nosso servidor Flask
+                const response = await fetch('/api/ultimos_dados');
                 const dados = await response.json();
 
                 // Atualiza os valores na tela
                 document.getElementById('valor-umidade').innerText = dados.umidade;
                 document.getElementById('valor-vibracao').innerText = (dados.vibracao === 1) ? "Detectada" : "Normal";
                 document.getElementById('valor-botao').innerText = (dados.botao === 1) ? "ACIONADO!" : "Inativo";
-                document.getElementById('timestamp').innerText = new Date(dados.timestamp).toLocaleString('pt-BR');
+                
+                // Formata a data e hora para o padrão brasileiro
+                const data = new Date(dados.timestamp);
+                const dataFormatada = data.toLocaleString('pt-BR', {
+                    day: '2-digit', month: '2-digit', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit', second: '2-digit'
+                });
+                document.getElementById('timestamp').innerText = dataFormatada;
+                
+                // --- LÓGICA DE CORES ATUALIZADA ---
 
-                // Lógica para mudar as cores dos cards
+                // NOVO: Define os mesmos limites do Arduino aqui no front-end
+                const LIMITE_ATENCAO = 300;
+                const LIMITE_PERIGO = 700;
+                
+                // NOVO: Pega o elemento do card de umidade
+                const cardUmidade = document.getElementById('card-umidade');
+                
+                // NOVO: Lógica para definir a cor do card de umidade
+                if (dados.umidade >= LIMITE_PERIGO) {
+                    cardUmidade.className = 'card perigo'; // Aplica a classe de perigo (vermelho)
+                } else if (dados.umidade >= LIMITE_ATENCAO) {
+                    cardUmidade.className = 'card alerta'; // Aplica a classe de alerta (amarelo)
+                } else {
+                    cardUmidade.className = 'card normal'; // Aplica a classe normal (verde)
+                }
+
+                // Lógica para os outros cards (continua a mesma)
                 const cardVibracao = document.getElementById('card-vibracao');
                 const cardBotao = document.getElementById('card-botao');
-
+                
                 cardVibracao.className = 'card ' + (dados.vibracao === 1 ? 'perigo' : 'normal');
                 cardBotao.className = 'card ' + (dados.botao === 1 ? 'perigo' : 'normal');
 
@@ -67,7 +94,7 @@
 
         // Chama a função pela primeira vez e depois a cada 3 segundos
         buscarDados();
-        setInterval(buscarDados, 3000); // 3000 milissegundos = 3 segundos
+        setInterval(buscarDados, 3000);
     </script>
 </body>
 </html>

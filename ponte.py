@@ -1,5 +1,5 @@
 import requests
-import json # Importamos a biblioteca json
+import json 
 
 # --- CONFIGURAÇÕES ---
 # URL do nosso servidor Flask local
