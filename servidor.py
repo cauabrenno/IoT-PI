@@ -8,7 +8,7 @@ import os       # Usado para pegar a senha de forma segura
 DB_NAME = "sensor_deslizamento" # O nome do banco que você criou
 DB_USER = "postgres"            # O usuário padrão do PostgreSQL
 DB_HOST = "localhost"           # O servidor está rodando na sua máquina
-DB_PASS = ("caua") # Pega a senha da variável de ambiente
+DB_PASS = ("caua") # Pega a senha 
 
 # --- FIM DA CONFIGURAÇÃO ---
 
