@@ -1,20 +1,18 @@
 from flask import Flask, request, jsonify, render_template
-import psycopg2 
-import os       # Usado para pegar a senha de forma segura
+import psycopg2
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # --- CONFIGURAÇÃO DA CONEXÃO COM O POSTGRESQL ---
-# É uma ótima prática não colocar senhas diretamente no código.
-# Vamos configurar uma "Variável de Ambiente" para a senha.
-DB_NAME = "sensor_deslizamento" # O nome do banco que você criou
-DB_USER = "postgres"            # O usuário padrão do PostgreSQL
-DB_HOST = "localhost"           # O servidor está rodando na sua máquina
+DB_NAME = "sensor_deslizamento"
+DB_USER = "postgres"
+DB_HOST = "localhost"
 DB_PASS = ("caua") # Pega a senha 
-
-# --- FIM DA CONFIGURAÇÃO ---
 
 app = Flask(__name__)
 
-# Função para criar uma conexão com o banco de dados
 def get_db_connection():
     try:
         conn = psycopg2.connect(
@@ -28,12 +26,10 @@ def get_db_connection():
         print(f"Erro ao conectar ao PostgreSQL: {e}")
         return None
 
-# Função para inicializar o banco de dados (criar a tabela se não existir)
 def init_db():
     conn = get_db_connection()
     if conn:
         with conn.cursor() as cur:
-            # MUDANÇA: A sintaxe para auto-incremento é "SERIAL PRIMARY KEY"
             cur.execute('''
                 CREATE TABLE IF NOT EXISTS leituras (
                     id SERIAL PRIMARY KEY,
@@ -47,7 +43,6 @@ def init_db():
         conn.close()
         print("Tabela 'leituras' verificada/criada com sucesso no PostgreSQL.")
 
-# Endpoint para RECEBER dados
 @app.route('/dados', methods=['POST'])
 def receber_dados():
     dados = request.json
@@ -59,7 +54,6 @@ def receber_dados():
     if not conn:
         return jsonify({"status": "erro", "mensagem": "Falha na conexão com o banco"}), 500
 
-    # MUDANÇA: Usamos a sintaxe com %s para passar parâmetros no psycopg2
     sql = "INSERT INTO leituras (umidade, vibracao, botao) VALUES (%s, %s, %s)"
     
     with conn.cursor() as cur:
@@ -70,7 +64,6 @@ def receber_dados():
     print(f"Dados salvos no PostgreSQL: Umidade={umidade}, Vibração={vibracao}, Botão={botao}")
     return jsonify({"status": "sucesso"}), 200
 
-# Endpoint para FORNECER os últimos dados
 @app.route('/api/ultimos_dados')
 def fornecer_ultimos_dados():
     conn = get_db_connection()
@@ -87,20 +80,44 @@ def fornecer_ultimos_dados():
             "umidade": leitura[0],
             "vibracao": leitura[1],
             "botao": leitura[2],
-            "timestamp": leitura[3].isoformat() # Usamos .isoformat() para datas
+            "timestamp": leitura[3].isoformat()
         }
         return jsonify(dados)
     else:
         return jsonify({})
 
-# Endpoint para MOSTRAR o dashboard
+# --- NOVO ENDPOINT PARA O HISTÓRICO ---
+@app.route('/api/historico')
+def fornecer_historico():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify([]) # Retorna uma lista vazia em caso de erro
+
+    with conn.cursor() as cur:
+        # Busca os 10 últimos registros, do mais novo para o mais antigo
+        cur.execute("SELECT umidade, vibracao, botao, timestamp FROM leituras ORDER BY id DESC LIMIT 10")
+        resultados = cur.fetchall() # Pega TODOS os resultados
+    conn.close()
+    
+    historico = []
+    for leitura in resultados:
+        historico.append({
+            "umidade": leitura[0],
+            "vibracao": leitura[1],
+            "botao": leitura[2],
+            "timestamp": leitura[3].isoformat()
+        })
+    
+    return jsonify(historico) # Retorna a lista de registros
+# --- FIM DO NOVO ENDPOINT ---
+
 @app.route('/')
 def dashboard():
     return render_template('index.html')
 
 if __name__ == '__main__':
     if not DB_PASS:
-        print("!!! ERRO: A variável de ambiente DB_PASSWORD não está definida.")
+        print("!!! ERRO: A variável DB_PASSWORD não está definida no arquivo .env ou como variável de ambiente.")
     else:
         init_db()
         app.run(debug=True)
