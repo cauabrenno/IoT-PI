@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template
-import psycopg2 # <--- MUDANÇA: Importamos a nova biblioteca
+import psycopg2 
 import os       # Usado para pegar a senha de forma segura
 
 # --- CONFIGURAÇÃO DA CONEXÃO COM O POSTGRESQL ---

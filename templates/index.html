@@ -5,20 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Monitoramento</title>
     <style>
-        /* CSS Básico para o visual */
+        /* CSS Limpo */
         body { font-family: sans-serif; background-color: #f0f2f5; color: #333; }
-        .dashboard h1{display: flex; justify-content: center;}
         .dashboard { max-width: 600px; margin: 40px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .card { padding: 15px; margin-bottom: 10px; border-radius: 5px; text-align: center; transition: background-color 0.5s ease; }
         .card h2 { margin-top: 0; font-size: 1.2em; color: #555; }
         .card p { font-size: 2.5em; font-weight: bold; margin-bottom: 0; }
         
-        /* Nossas classes de estado */
         .normal { background-color: #e8f5e9; color: #2e7d32; }
-        .alerta { background-color: #fff3e0; color: #ffd904; }
+        .alerta { background-color: #fff3e0; color: #ef6c00; }
         .perigo { background-color: #ffebee; color: #c62828; }
         
         .timestamp { text-align: center; margin-top: 20px; font-style: italic; color: #888; }
+        
+        /* O CSS do botão foi removido */
     </style>
 </head>
 <body>
@@ -44,18 +44,39 @@
     </div>
 
     <script>
-        // JavaScript para buscar e atualizar os dados
+        // Variável de estado para evitar spam de notificações
+        let alarmeDisparado = false;
+
+        // --- MUDANÇA ---
+        // Pede permissão para notificações assim que a página carrega,
+        // já que não temos mais o botão.
+        if ("Notification" in window && Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+        // --- FIM DA MUDANÇA ---
+
+        // Função que cria a notificação push (continua igual)
+        function mostrarNotificacao(corpo) {
+            if (Notification.permission === "granted") {
+                const notificacao = new Notification("ALERTA DE DESLIZAMENTO!", {
+                    body: corpo,
+                    // icon: "/static/icone_perigo.png"
+                });
+            }
+        }
+
+        // Função principal que busca os dados
         async function buscarDados() {
             try {
                 const response = await fetch('/api/ultimos_dados');
                 const dados = await response.json();
 
-                // Atualiza os valores na tela
+                // Atualiza os textos
                 document.getElementById('valor-umidade').innerText = dados.umidade;
                 document.getElementById('valor-vibracao').innerText = (dados.vibracao === 1) ? "Detectada" : "Normal";
                 document.getElementById('valor-botao').innerText = (dados.botao === 1) ? "ACIONADO!" : "Inativo";
                 
-                // Formata a data e hora para o padrão brasileiro
+                // Atualiza o timestamp
                 const data = new Date(dados.timestamp);
                 const dataFormatada = data.toLocaleString('pt-BR', {
                     day: '2-digit', month: '2-digit', year: 'numeric',
@@ -63,30 +84,41 @@
                 });
                 document.getElementById('timestamp').innerText = dataFormatada;
                 
-                // --- LÓGICA DE CORES ATUALIZADA ---
-
-                // NOVO: Define os mesmos limites do Arduino aqui no front-end
+                // Lógica de cores
                 const LIMITE_ATENCAO = 300;
                 const LIMITE_PERIGO = 700;
                 
-                // NOVO: Pega o elemento do card de umidade
                 const cardUmidade = document.getElementById('card-umidade');
-                
-                // NOVO: Lógica para definir a cor do card de umidade
                 if (dados.umidade >= LIMITE_PERIGO) {
-                    cardUmidade.className = 'card perigo'; // Aplica a classe de perigo (vermelho)
+                    cardUmidade.className = 'card perigo';
                 } else if (dados.umidade >= LIMITE_ATENCAO) {
-                    cardUmidade.className = 'card alerta'; // Aplica a classe de alerta (amarelo)
+                    cardUmidade.className = 'card alerta';
                 } else {
-                    cardUmidade.className = 'card normal'; // Aplica a classe normal (verde)
+                    cardUmidade.className = 'card normal';
                 }
 
-                // Lógica para os outros cards (continua a mesma)
                 const cardVibracao = document.getElementById('card-vibracao');
                 const cardBotao = document.getElementById('card-botao');
-                
                 cardVibracao.className = 'card ' + (dados.vibracao === 1 ? 'perigo' : 'normal');
                 cardBotao.className = 'card ' + (dados.botao === 1 ? 'perigo' : 'normal');
+
+                // LÓGICA DE ALERTA (SEM O SOM)
+                const estaEmPerigo = (dados.umidade >= LIMITE_PERIGO) || (dados.vibracao === 1) || (dados.botao === 1);
+                
+                if (estaEmPerigo && !alarmeDisparado) {
+                    alarmeDisparado = true;
+                    
+                    // A CHAMADA DE ÁUDIO FOI REMOVIDA DAQUI
+                    
+                    // Cria a notificação
+                    let msg = "Sensor de vibração ou umidade em nível de perigo!";
+                    if (dados.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
+                    mostrarNotificacao(msg);
+                
+                } 
+                else if (!estaEmPerigo && alarmeDisparado) {
+                    alarmeDisparado = false;
+                }
 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
