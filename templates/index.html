@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="refresh" content="3">
     <title>Dashboard de Monitoramento</title>
+    
     <style>
         /* 1. Reset Básico e Nova Fonte */
         * {
@@ -227,19 +227,17 @@
             </section>
 
         </div> </div> <script>
-        // SEU JAVASCRIPT ESTÁ 100% INTACTO. 
-        // Ele funciona perfeitamente com a nova estrutura.
-
-        let alarmeDisparado = false; 
-
-        if ("Notification" in window && Notification.permission !== "denied") {
-            Notification.requestPermission();
-        }
+        // --- INÍCIO DA MUDANÇA ---
+        // Trocamos a trava "alarmeDisparado"
+        // por uma que guarda o carimbo de data/hora
+        let ultimoTimestampNotificado = null; 
+        // --- FIM DA MUDANÇA ---
 
         function mostrarNotificacao(corpo) {
             if (Notification.permission === "granted") {
                 const notificacao = new Notification("ALERTA DE DESLIZAMENTO!", {
                     body: corpo,
+                    icon: "https://i.imgur.com/h24jCj2.png" 
                 });
             }
         }
@@ -254,19 +252,23 @@
 
         async function buscarDados() {
             try {
+                // ... (código de busca de dados, preenchimento de cards e tabela)
                 const responseLive = await fetch('/api/ultimos_dados');
                 const dadosLive = await responseLive.json();
+                
+                // Se não houver dados, não faz nada
+                if (!dadosLive.timestamp) {
+                    return;
+                }
 
                 const responseHistorico = await fetch('/api/historico');
                 const dadosHistorico = await responseHistorico.json();
 
-                // Preenche os CARDS
                 document.getElementById('valor-umidade').innerText = dadosLive.umidade;
                 document.getElementById('valor-vibracao').innerText = (dadosLive.vibracao === 1) ? "Detectada" : "Normal";
                 document.getElementById('valor-botao').innerText = (dadosLive.botao === 1) ? "ACIONADO!" : "Inativo";
                 document.getElementById('timestamp').innerText = formatarData(dadosLive.timestamp);
                 
-                // Lógica de cores dos cards
                 const LIMITE_ATENCAO = 300;
                 const LIMITE_PERIGO = 700;
                 
@@ -274,7 +276,6 @@
                 const cardVibracao = document.getElementById('card-vibracao');
                 const cardBotao = document.getElementById('card-botao');
 
-                // Lógica da Umidade
                 if (dadosLive.umidade >= LIMITE_PERIGO) {
                     cardUmidade.className = 'card perigo';
                 } else if (dadosLive.umidade >= LIMITE_ATENCAO) {
@@ -282,30 +283,11 @@
                 } else {
                     cardUmidade.className = 'card normal';
                 }
-                
-                // Lógica da Vibração
                 cardVibracao.className = 'card ' + (dadosLive.vibracao === 1 ? 'perigo' : 'normal');
-                
-                // Lógica do Botão
                 cardBotao.className = 'card ' + (dadosLive.botao === 1 ? 'perigo' : 'normal');
 
-                // Lógica de notificação
-                const estaEmPerigo = (dadosLive.umidade >= LIMITE_PERIGO) || (dadosLive.vibracao === 1) || (dadosLive.botao === 1);
-                
-                if (estaEmPerigo && !alarmeDisparado) {
-                    alarmeDisparado = true;
-                    let msg = "Sensor de vibração ou umidade em nível de perigo!";
-                    if (dadosLive.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
-                    mostrarNotificacao(msg);
-                } 
-                else if (!estaEmPerigo && alarmeDisparado) {
-                    alarmeDisparado = false;
-                }
-
-                // Preenche a TABELA
                 const tabelaCorpo = document.getElementById('tabela-historico');
                 tabelaCorpo.innerHTML = ''; 
-
                 if (dadosHistorico.length === 0) {
                     tabelaCorpo.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum registro encontrado.</td></tr>';
                 } else {
@@ -319,6 +301,42 @@
                         tabelaCorpo.innerHTML += linha;
                     }
                 }
+                
+                // --- INÍCIO DA LÓGICA DE NOTIFICAÇÃO CORRIGIDA ---
+
+                const estaEmPerigo = (dadosLive.umidade >= LIMITE_PERIGO) || (dadosLive.vibracao === 1) || (dadosLive.botao === 1);
+                
+                if (estaEmPerigo) {
+                    // 1. Está em perigo. Agora, verificamos se é um DADO NOVO.
+                    if (dadosLive.timestamp !== ultimoTimestampNotificado) {
+                        // É um dado de perigo NOVO!
+                        
+                        let msg = "Sensor de vibração ou umidade em nível de perigo!";
+                        if (dadosLive.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
+                        
+                        if (!("Notification" in window)) {
+                            console.warn("Navegador não suporta notificações.");
+                        
+                        } else if (Notification.permission === "granted") {
+                            // Permissão JÁ foi dada.
+                            mostrarNotificacao(msg);
+                            ultimoTimestampNotificado = dadosLive.timestamp; // Trava o alarme para este timestamp
+                        
+                        } else if (Notification.permission !== "denied") {
+                            // Permissão está "prompt" (pendente). PERGUNTA AGORA.
+                            Notification.requestPermission().then((permission) => {
+                                if (permission === "granted") {
+                                    mostrarNotificacao(msg);
+                                    ultimoTimestampNotificado = dadosLive.timestamp; // Trava o alarme
+                                }
+                            });
+                        }
+                    }
+                    // Se o timestamp for o mesmo, não faz nada (evita spam)
+                }
+                // Não precisamos mais do "else if" para resetar a trava.
+                
+                // --- FIM DA LÓGICA DE NOTIFICAÇÃO CORRIGIDA ---
 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
