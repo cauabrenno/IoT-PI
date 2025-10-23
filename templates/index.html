@@ -5,9 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Monitoramento</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Gabarito:wght@400..900&family=Orbitron:wght@400..900&family=Space+Grotesk:wght@300..700&display=swap" rel="stylesheet">
 
     <style>
-        /* 1. Reset Básico e Nova Fonte */
         * {
             margin: 0;
             padding: 0;
@@ -15,13 +17,12 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #f4f7f6;
+            font-family: "Space Grotesk", sans-serif;
+            background-color: #0e61459f;
             color: #333;
             line-height: 1.6;
         }
 
-        /* 2. Layout Principal do Dashboard */
         .dashboard {
             max-width: 1300px;
             margin: 40px auto;
@@ -34,13 +35,13 @@
             align-items: center;
             margin-bottom: 24px;
             flex-wrap: wrap;
-            /* Para telas pequenas */
         }
 
         .dashboard-header h1 {
             font-size: 2.25rem;
             color: #222;
-            font-weight: 700;
+            font-weight: 900;
+            line-height: 45px;
         }
 
         .timestamp {
@@ -51,23 +52,18 @@
             border-radius: 6px;
         }
 
-        /* 3. Contêiner Flex (Lado a Lado) */
         .main-content {
             display: flex;
             flex-wrap: wrap;
-            /* Permite quebrar em telas pequenas */
             gap: 24px;
         }
 
-        /* 4. Bloco dos Cards */
         .cards-container {
             flex: 1;
-            /* Ocupa 1 parte do espaço */
             min-width: 320px;
             display: flex;
             flex-direction: column;
             gap: 16px;
-            /* Espaço entre os cards */
         }
 
         .card {
@@ -76,7 +72,6 @@
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
             border-left: 6px solid #ddd;
-            /* Borda de status inicial */
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -101,7 +96,6 @@
             color: #333;
         }
 
-        /* 5. Cores Dinâmicas dos Cards (Mais Sutil) */
         .card.normal {
             border-left-color: #2e7d32;
         }
@@ -130,17 +124,14 @@
         }
 
 
-        /* 6. Bloco da Tabela */
         .table-container {
             flex: 2;
-            /* Ocupa 2 partes (mais largo) */
-            min-width: 400px;
+            min-width: 380px;
             background-color: #ffffff;
             padding: 24px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            overflow-x: auto;
-            /* Permite rolar a tabela horizontalmente no mobile */
+            overflow-x: hidden;
         }
 
         .table-container h2 {
@@ -183,11 +174,22 @@
             background-color: #f8f9fa;
         }
 
-        /* 7. Responsividade para Celulares */
         @media (max-width: 900px) {
+            body {
+                height: 100vh;
+                margin: 0;
+                overflow-x: hidden;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .dashboard h1 {
+                margin-bottom: 20px;
+            }
+
             .main-content {
                 flex-direction: column;
-                /* Empilha os blocos */
             }
 
             .dashboard-header {
@@ -197,6 +199,7 @@
             }
         }
     </style>
+
 </head>
 
 <body>
@@ -259,11 +262,8 @@
         </div>
     </div>
     <script>
-        // --- INÍCIO DA MUDANÇA ---
-        // Trocamos a trava "alarmeDisparado"
-        // por uma que guarda o carimbo de data/hora
+    
         let ultimoTimestampNotificado = null;
-        // --- FIM DA MUDANÇA ---
 
         function mostrarNotificacao(corpo) {
             if (Notification.permission === "granted") {
