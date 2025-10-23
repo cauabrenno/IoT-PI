@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard de Monitoramento</title>
-    
+
     <style>
         /* 1. Reset Básico e Nova Fonte */
         * {
@@ -13,7 +14,7 @@
             box-sizing: border-box;
         }
 
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             background-color: #f4f7f6;
             color: #333;
@@ -21,27 +22,28 @@
         }
 
         /* 2. Layout Principal do Dashboard */
-        .dashboard { 
+        .dashboard {
             max-width: 1300px;
-            margin: 40px auto; 
-            padding: 24px; 
+            margin: 40px auto;
+            padding: 24px;
         }
-        
+
         .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 24px;
-            flex-wrap: wrap; /* Para telas pequenas */
+            flex-wrap: wrap;
+            /* Para telas pequenas */
         }
-        
+
         .dashboard-header h1 {
             font-size: 2.25rem;
             color: #222;
             font-weight: 700;
         }
 
-        .timestamp { 
+        .timestamp {
             font-size: 0.9rem;
             color: #666;
             background-color: #e9ecef;
@@ -52,25 +54,29 @@
         /* 3. Contêiner Flex (Lado a Lado) */
         .main-content {
             display: flex;
-            flex-wrap: wrap; /* Permite quebrar em telas pequenas */
-            gap: 24px; 
+            flex-wrap: wrap;
+            /* Permite quebrar em telas pequenas */
+            gap: 24px;
         }
 
         /* 4. Bloco dos Cards */
         .cards-container {
-            flex: 1; /* Ocupa 1 parte do espaço */
+            flex: 1;
+            /* Ocupa 1 parte do espaço */
             min-width: 320px;
             display: flex;
             flex-direction: column;
-            gap: 16px; /* Espaço entre os cards */
+            gap: 16px;
+            /* Espaço entre os cards */
         }
 
-        .card { 
+        .card {
             background-color: #ffffff;
-            padding: 24px; 
-            border-radius: 10px; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-left: 6px solid #ddd; /* Borda de status inicial */
+            padding: 24px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border-left: 6px solid #ddd;
+            /* Borda de status inicial */
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
@@ -82,42 +88,59 @@
             opacity: 0.7;
         }
 
-        .card-content h2 { 
-            font-size: 1rem; 
-            color: #555; 
+        .card-content h2 {
+            font-size: 1rem;
+            color: #555;
             font-weight: 500;
             margin-bottom: 4px;
         }
-        
-        .card-content p { 
-            font-size: 2.25rem; 
-            font-weight: 700; 
+
+        .card-content p {
+            font-size: 2.25rem;
+            font-weight: 700;
             color: #333;
         }
 
         /* 5. Cores Dinâmicas dos Cards (Mais Sutil) */
-        .card.normal { border-left-color: #2e7d32; }
-        .card.normal .card-content p, 
-        .card.normal .card-icon { color: #2e7d32; }
+        .card.normal {
+            border-left-color: #2e7d32;
+        }
 
-        .card.alerta { border-left-color: #ef6c00; }
+        .card.normal .card-content p,
+        .card.normal .card-icon {
+            color: #2e7d32;
+        }
+
+        .card.alerta {
+            border-left-color: #ef6c00;
+        }
+
         .card.alerta .card-content p,
-        .card.alerta .card-icon { color: #ef6c00; }
+        .card.alerta .card-icon {
+            color: #ef6c00;
+        }
 
-        .card.perigo { border-left-color: #c62828; }
+        .card.perigo {
+            border-left-color: #c62828;
+        }
+
         .card.perigo .card-content p,
-        .card.perigo .card-icon { color: #c62828; }
+        .card.perigo .card-icon {
+            color: #c62828;
+        }
 
 
         /* 6. Bloco da Tabela */
         .table-container {
-            flex: 2; /* Ocupa 2 partes (mais largo) */
+            flex: 2;
+            /* Ocupa 2 partes (mais largo) */
             min-width: 400px;
             background-color: #ffffff;
             padding: 24px;
             border-radius: 10px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            overflow-x: auto; /* Permite rolar a tabela horizontalmente no mobile */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            overflow-x: auto;
+            /* Permite rolar a tabela horizontalmente no mobile */
         }
 
         .table-container h2 {
@@ -132,14 +155,18 @@
             border-collapse: collapse;
         }
 
-        th, td {
-            padding: 14px 10px; /* Mais preenchimento */
-            border-bottom: 1px solid #eee; /* Apenas borda inferior */
+        th,
+        td {
+            padding: 14px 10px;
+            /* Mais preenchimento */
+            border-bottom: 1px solid #eee;
+            /* Apenas borda inferior */
             text-align: left;
         }
 
         th {
-            background-color: #343a40; /* Cabeçalho escuro */
+            background-color: #343a40;
+            /* Cabeçalho escuro */
             color: #ffffff;
             font-weight: 600;
             font-size: 0.9rem;
@@ -151,16 +178,18 @@
         tbody tr:last-child td {
             border-bottom: none;
         }
-        
-        tbody tr:hover { 
-            background-color: #f8f9fa; 
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
         }
 
         /* 7. Responsividade para Celulares */
         @media (max-width: 900px) {
             .main-content {
-                flex-direction: column; /* Empilha os blocos */
+                flex-direction: column;
+                /* Empilha os blocos */
             }
+
             .dashboard-header {
                 flex-direction: column;
                 align-items: flex-start;
@@ -169,18 +198,19 @@
         }
     </style>
 </head>
+
 <body>
     <div class="dashboard">
-        
+
         <header class="dashboard-header">
             <h1>Painel de Monitoramento</h1>
             <p class="timestamp">Última atualização: <span id="timestamp">Carregando...</span></p>
         </header>
-        
+
         <div class="main-content">
 
             <section class="cards-container">
-                
+
                 <div id="card-umidade" class="card">
                     <div class="card-icon">💧</div>
                     <div class="card-content">
@@ -196,7 +226,7 @@
                         <p id="valor-vibracao">--</p>
                     </div>
                 </div>
-                
+
                 <div id="card-botao" class="card">
                     <div class="card-icon">🔔</div>
                     <div class="card-content">
@@ -226,18 +256,20 @@
                 </table>
             </section>
 
-        </div> </div> <script>
+        </div>
+    </div>
+    <script>
         // --- INÍCIO DA MUDANÇA ---
         // Trocamos a trava "alarmeDisparado"
         // por uma que guarda o carimbo de data/hora
-        let ultimoTimestampNotificado = null; 
+        let ultimoTimestampNotificado = null;
         // --- FIM DA MUDANÇA ---
 
         function mostrarNotificacao(corpo) {
             if (Notification.permission === "granted") {
                 const notificacao = new Notification("ALERTA DE DESLIZAMENTO!", {
                     body: corpo,
-                    icon: "https://i.imgur.com/h24jCj2.png" 
+                    icon: "https://i.imgur.com/h24jCj2.png"
                 });
             }
         }
@@ -255,7 +287,7 @@
                 // ... (código de busca de dados, preenchimento de cards e tabela)
                 const responseLive = await fetch('/api/ultimos_dados');
                 const dadosLive = await responseLive.json();
-                
+
                 // Se não houver dados, não faz nada
                 if (!dadosLive.timestamp) {
                     return;
@@ -266,12 +298,12 @@
 
                 document.getElementById('valor-umidade').innerText = dadosLive.umidade;
                 document.getElementById('valor-vibracao').innerText = (dadosLive.vibracao === 1) ? "Detectada" : "Normal";
-                document.getElementById('valor-botao').innerText = (dadosLive.botao === 1) ? "ACIONADO!" : "Inativo";
+                document.getElementById('valor-botao').innerText = (dadosLive.botao === 1) ? "Acionado!" : "Inativo";
                 document.getElementById('timestamp').innerText = formatarData(dadosLive.timestamp);
-                
+
                 const LIMITE_ATENCAO = 300;
                 const LIMITE_PERIGO = 700;
-                
+
                 const cardUmidade = document.getElementById('card-umidade');
                 const cardVibracao = document.getElementById('card-vibracao');
                 const cardBotao = document.getElementById('card-botao');
@@ -287,7 +319,7 @@
                 cardBotao.className = 'card ' + (dadosLive.botao === 1 ? 'perigo' : 'normal');
 
                 const tabelaCorpo = document.getElementById('tabela-historico');
-                tabelaCorpo.innerHTML = ''; 
+                tabelaCorpo.innerHTML = '';
                 if (dadosHistorico.length === 0) {
                     tabelaCorpo.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum registro encontrado.</td></tr>';
                 } else {
@@ -296,32 +328,32 @@
                             <td>${formatarData(registro.timestamp)}</td>
                             <td>${registro.umidade}</td>
                             <td>${registro.vibracao === 1 ? 'Detectada' : 'Normal'}</td>
-                            <td>${registro.botao === 1 ? 'ACIONADO' : 'Inativo'}</td>
+                            <td>${registro.botao === 1 ? 'Acionado' : 'Inativo'}</td>
                         </tr>`;
                         tabelaCorpo.innerHTML += linha;
                     }
                 }
-                
+
                 // --- INÍCIO DA LÓGICA DE NOTIFICAÇÃO CORRIGIDA ---
 
                 const estaEmPerigo = (dadosLive.umidade >= LIMITE_PERIGO) || (dadosLive.vibracao === 1) || (dadosLive.botao === 1);
-                
+
                 if (estaEmPerigo) {
                     // 1. Está em perigo. Agora, verificamos se é um DADO NOVO.
                     if (dadosLive.timestamp !== ultimoTimestampNotificado) {
                         // É um dado de perigo NOVO!
-                        
+
                         let msg = "Sensor de vibração ou umidade em nível de perigo!";
                         if (dadosLive.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
-                        
+
                         if (!("Notification" in window)) {
                             console.warn("Navegador não suporta notificações.");
-                        
+
                         } else if (Notification.permission === "granted") {
                             // Permissão JÁ foi dada.
                             mostrarNotificacao(msg);
                             ultimoTimestampNotificado = dadosLive.timestamp; // Trava o alarme para este timestamp
-                        
+
                         } else if (Notification.permission !== "denied") {
                             // Permissão está "prompt" (pendente). PERGUNTA AGORA.
                             Notification.requestPermission().then((permission) => {
@@ -335,7 +367,7 @@
                     // Se o timestamp for o mesmo, não faz nada (evita spam)
                 }
                 // Não precisamos mais do "else if" para resetar a trava.
-                
+
                 // --- FIM DA LÓGICA DE NOTIFICAÇÃO CORRIGIDA ---
 
             } catch (error) {
@@ -347,4 +379,5 @@
         setInterval(buscarDados, 3000);
     </script>
 </body>
+
 </html>
