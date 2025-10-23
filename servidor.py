@@ -11,7 +11,7 @@ DB_USER = "postgres"
 DB_HOST = "localhost"
 DB_PASS = ("caua") # Pega a senha 
 
-app = Flask(__name__)
+app = Flask(__name__)   
 
 def get_db_connection():
     try:
