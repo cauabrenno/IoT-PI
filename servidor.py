@@ -120,4 +120,4 @@ if __name__ == '__main__':
         print("!!! ERRO: A variável DB_PASSWORD não está definida no arquivo .env ou como variável de ambiente.")
     else:
         init_db()
-        app.run(debug=True)
+    app.run(host='0.0.0.0', debug=True)
