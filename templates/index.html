@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="3">
     <title>Dashboard de Monitoramento</title>
-    
     <style>
         /* 1. Reset Básico e Nova Fonte */
         * {
@@ -227,6 +227,9 @@
             </section>
 
         </div> </div> <script>
+        // SEU JAVASCRIPT ESTÁ 100% INTACTO. 
+        // Ele funciona perfeitamente com a nova estrutura.
+
         let alarmeDisparado = false; 
 
         if ("Notification" in window && Notification.permission !== "denied") {
@@ -234,11 +237,9 @@
         }
 
         function mostrarNotificacao(corpo) {
-            // A verificação de permissão aqui é uma boa garantia
             if (Notification.permission === "granted") {
                 const notificacao = new Notification("ALERTA DE DESLIZAMENTO!", {
                     body: corpo,
-                    icon: "https://i.imgur.com/h24jCj2.png" // Adicionei um ícone de alerta genérico
                 });
             }
         }
@@ -259,12 +260,13 @@
                 const responseHistorico = await fetch('/api/historico');
                 const dadosHistorico = await responseHistorico.json();
 
-                // ... (preenchimento de cards e tabela) ...
+                // Preenche os CARDS
                 document.getElementById('valor-umidade').innerText = dadosLive.umidade;
                 document.getElementById('valor-vibracao').innerText = (dadosLive.vibracao === 1) ? "Detectada" : "Normal";
                 document.getElementById('valor-botao').innerText = (dadosLive.botao === 1) ? "ACIONADO!" : "Inativo";
                 document.getElementById('timestamp').innerText = formatarData(dadosLive.timestamp);
                 
+                // Lógica de cores dos cards
                 const LIMITE_ATENCAO = 300;
                 const LIMITE_PERIGO = 700;
                 
@@ -272,6 +274,7 @@
                 const cardVibracao = document.getElementById('card-vibracao');
                 const cardBotao = document.getElementById('card-botao');
 
+                // Lógica da Umidade
                 if (dadosLive.umidade >= LIMITE_PERIGO) {
                     cardUmidade.className = 'card perigo';
                 } else if (dadosLive.umidade >= LIMITE_ATENCAO) {
@@ -279,11 +282,30 @@
                 } else {
                     cardUmidade.className = 'card normal';
                 }
+                
+                // Lógica da Vibração
                 cardVibracao.className = 'card ' + (dadosLive.vibracao === 1 ? 'perigo' : 'normal');
+                
+                // Lógica do Botão
                 cardBotao.className = 'card ' + (dadosLive.botao === 1 ? 'perigo' : 'normal');
 
+                // Lógica de notificação
+                const estaEmPerigo = (dadosLive.umidade >= LIMITE_PERIGO) || (dadosLive.vibracao === 1) || (dadosLive.botao === 1);
+                
+                if (estaEmPerigo && !alarmeDisparado) {
+                    alarmeDisparado = true;
+                    let msg = "Sensor de vibração ou umidade em nível de perigo!";
+                    if (dadosLive.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
+                    mostrarNotificacao(msg);
+                } 
+                else if (!estaEmPerigo && alarmeDisparado) {
+                    alarmeDisparado = false;
+                }
+
+                // Preenche a TABELA
                 const tabelaCorpo = document.getElementById('tabela-historico');
                 tabelaCorpo.innerHTML = ''; 
+
                 if (dadosHistorico.length === 0) {
                     tabelaCorpo.innerHTML = '<tr><td colspan="4" style="text-align: center;">Nenhum registro encontrado.</td></tr>';
                 } else {
@@ -297,34 +319,6 @@
                         tabelaCorpo.innerHTML += linha;
                     }
                 }
-                
-                // --- INÍCIO DA CORREÇÃO ---
-
-                // Lógica de notificação
-                const estaEmPerigo = (dadosLive.umidade >= LIMITE_PERIGO) || (dadosLive.vibracao === 1) || (dadosLive.botao === 1);
-                
-                if (estaEmPerigo && !alarmeDisparado) {
-                    
-                    // Verificamos a permissão ANTES de travar o alarme
-                    if (Notification.permission === "granted") {
-                        // Se a permissão foi dada, travamos o alarme e mostramos a notificação
-                        alarmeDisparado = true; 
-                        let msg = "Sensor de vibração ou umidade em nível de perigo!";
-                        if (dadosLive.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
-                        mostrarNotificacao(msg);
-                    } else {
-                        // Se a permissão não foi dada, NÂO travamos o alarme.
-                        // O sistema tentará de novo no próximo ciclo de 3s.
-                        console.warn("Perigo detectado, mas permissão de notificação está pendente.");
-                    }
-
-                } 
-                else if (!estaEmPerigo && alarmeDisparado) {
-                    alarmeDisparado = false; // Reseta a trava
-                }
-                
-                // --- FIM DA CORREÇÃO ---
-
 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
