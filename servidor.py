@@ -3,24 +3,28 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-load_dotenv()
-
-# --- CONFIGURAÇÃO DA CONEXÃO COM O POSTGRESQL ---
-DB_NAME = "sensor_deslizamento"
-DB_USER = "postgres"
-DB_HOST = "localhost"
-DB_PASS = ("caua") # Pega a senha 
+# Carrega as variáveis do arquivo .env (se ele existir)
+# O Render não usa .env, ele injeta as variáveis direto
+load_dotenv() 
 
 app = Flask(__name__)   
 
 def get_db_connection():
+    # Esta é a variável de ambiente que o Render cria
+    DATABASE_URL = os.getenv("DATABASE_URL")
+    
     try:
-        conn = psycopg2.connect(
-            dbname=DB_NAME,
-            user=DB_USER,
-            password=DB_PASS,
-            host=DB_HOST
-        )
+        if DATABASE_URL:
+            # 1. Se estiver no Render, usa a URL de conexão
+            conn = psycopg2.connect(DATABASE_URL)
+        else:
+            # 2. Se estiver rodando local (teste), usa as variáveis locais
+            conn = psycopg2.connect(
+                dbname="sensor_deslizamento",
+                user="postgres",
+                password="caua", # Sua senha local que você definiu
+                host="localhost"
+            )
         return conn
     except Exception as e:
         print(f"Erro ao conectar ao PostgreSQL: {e}")
@@ -41,7 +45,9 @@ def init_db():
             ''')
         conn.commit()
         conn.close()
-        print("Tabela 'leituras' verificada/criada com sucesso no PostgreSQL.")
+        # Não imprimimos a mensagem de sucesso se estivermos no Render (para não poluir o log)
+        if not os.getenv("DATABASE_URL"):
+            print("Tabela 'leituras' verificada/criada com sucesso (Local).")
 
 @app.route('/dados', methods=['POST'])
 def receber_dados():
@@ -86,17 +92,15 @@ def fornecer_ultimos_dados():
     else:
         return jsonify({})
 
-# --- NOVO ENDPOINT PARA O HISTÓRICO ---
 @app.route('/api/historico')
 def fornecer_historico():
     conn = get_db_connection()
     if not conn:
-        return jsonify([]) # Retorna uma lista vazia em caso de erro
+        return jsonify([]) 
 
     with conn.cursor() as cur:
-        # Busca os 10 últimos registros, do mais novo para o mais antigo
         cur.execute("SELECT umidade, vibracao, botao, timestamp FROM leituras ORDER BY id DESC LIMIT 10")
-        resultados = cur.fetchall() # Pega TODOS os resultados
+        resultados = cur.fetchall() 
     conn.close()
     
     historico = []
@@ -108,16 +112,15 @@ def fornecer_historico():
             "timestamp": leitura[3].isoformat()
         })
     
-    return jsonify(historico) # Retorna a lista de registros
-# --- FIM DO NOVO ENDPOINT ---
+    return jsonify(historico) 
 
 @app.route('/')
 def dashboard():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    if not DB_PASS:
-        print("!!! ERRO: A variável DB_PASSWORD não está definida no arquivo .env ou como variável de ambiente.")
-    else:
-        init_db()
+    # Esta parte só roda quando você executa 'python servidor.py'
+    # O Render ignora esta parte e usa o comando Gunicorn
+    print("Iniciando servidor localmente em http://0.0.0.0:5000")
+    init_db()
     app.run(host='0.0.0.0', debug=True)

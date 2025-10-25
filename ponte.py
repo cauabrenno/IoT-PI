@@ -3,8 +3,10 @@ import json
 
 # --- CONFIGURAÇÕES ---
 # URL do nosso servidor Flask local
-SERVER_URL = "http://127.0.0.1:5000/dados"
+#SERVER_URL = "http://127.0.0.1:5000/dados"
 # -------------------
+
+SERVER_URL = "https://meu-sensor.onrender.com/dados"
 
 print("--- Ponte Tinkercad para Servidor Local ---")
 print("Iniciado. Copie uma linha de dados do Monitor Serial e cole aqui.")
