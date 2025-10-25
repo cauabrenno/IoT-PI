@@ -6,7 +6,7 @@ import json
 #SERVER_URL = "http://127.0.0.1:5000/dados"
 # -------------------
 
-SERVER_URL = "https://meu-sensor.onrender.com/dados"
+SERVER_URL = "https://iot-pi-3cva.onrender.com/dados"
 
 print("--- Ponte Tinkercad para Servidor Local ---")
 print("Iniciado. Copie uma linha de dados do Monitor Serial e cole aqui.")
