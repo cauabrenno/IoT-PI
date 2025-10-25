@@ -3,26 +3,20 @@ import psycopg2
 import os
 from dotenv import load_dotenv
 
-# Carrega as variáveis do arquivo .env (se ele existir)
-# O Render não usa .env, ele injeta as variáveis direto
 load_dotenv() 
 
 app = Flask(__name__)   
 
 def get_db_connection():
-    # Esta é a variável de ambiente que o Render cria
     DATABASE_URL = os.getenv("DATABASE_URL")
-    
     try:
         if DATABASE_URL:
-            # 1. Se estiver no Render, usa a URL de conexão
             conn = psycopg2.connect(DATABASE_URL)
         else:
-            # 2. Se estiver rodando local (teste), usa as variáveis locais
             conn = psycopg2.connect(
                 dbname="sensor_deslizamento",
                 user="postgres",
-                password="caua", # Sua senha local que você definiu
+                password="caua", # Sua senha local
                 host="localhost"
             )
         return conn
@@ -45,9 +39,17 @@ def init_db():
             ''')
         conn.commit()
         conn.close()
-        # Não imprimimos a mensagem de sucesso se estivermos no Render (para não poluir o log)
-        if not os.getenv("DATABASE_URL"):
-            print("Tabela 'leituras' verificada/criada com sucesso (Local).")
+        print("Tabela 'leituras' verificada/criada com sucesso.")
+    else:
+        print("Falha ao conectar ao banco para rodar init_db.")
+
+# --- A CORREÇÃO MÁGICA ---
+# Força a criação da tabela assim que o app é carregado pelo Gunicorn.
+# Usamos 'app.app_context()' para ter certeza que tudo está pronto.
+with app.app_context():
+    init_db()
+# --- FIM DA CORREÇÃO ---
+
 
 @app.route('/dados', methods=['POST'])
 def receber_dados():
@@ -119,8 +121,7 @@ def dashboard():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    # Esta parte só roda quando você executa 'python servidor.py'
-    # O Render ignora esta parte e usa o comando Gunicorn
+    # Esta parte agora é só para o seu teste local
     print("Iniciando servidor localmente em http://0.0.0.0:5000")
-    init_db()
+    # init_db() não é mais necessário aqui, pois já rodou no topo
     app.run(host='0.0.0.0', debug=True)
