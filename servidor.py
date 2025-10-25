@@ -1,24 +1,23 @@
 from flask import Flask, request, jsonify, render_template
 import psycopg2
 import os
-from dotenv import load_dotenv
 
-load_dotenv() 
+# --- CONFIGURAÇÃO DA CONEXÃO COM O POSTGRESQL ---
+DB_NAME = "sensor_deslizamento"
+DB_USER = "postgres"
+DB_HOST = "localhost"
+DB_PASS = "caua" 
 
 app = Flask(__name__)   
 
 def get_db_connection():
-    DATABASE_URL = os.getenv("DATABASE_URL")
     try:
-        if DATABASE_URL:
-            conn = psycopg2.connect(DATABASE_URL)
-        else:
-            conn = psycopg2.connect(
-                dbname="sensor_deslizamento",
-                user="postgres",
-                password="caua", # Sua senha local
-                host="localhost"
-            )
+        conn = psycopg2.connect(
+            dbname=DB_NAME,
+            user=DB_USER,
+            password=DB_PASS,
+            host=DB_HOST
+        )
         return conn
     except Exception as e:
         print(f"Erro ao conectar ao PostgreSQL: {e}")
@@ -39,17 +38,7 @@ def init_db():
             ''')
         conn.commit()
         conn.close()
-        print("Tabela 'leituras' verificada/criada com sucesso.")
-    else:
-        print("Falha ao conectar ao banco para rodar init_db.")
-
-# --- A CORREÇÃO MÁGICA ---
-# Força a criação da tabela assim que o app é carregado pelo Gunicorn.
-# Usamos 'app.app_context()' para ter certeza que tudo está pronto.
-with app.app_context():
-    init_db()
-# --- FIM DA CORREÇÃO ---
-
+        print("Tabela 'leituras' verificada/criada com sucesso no PostgreSQL.")
 
 @app.route('/dados', methods=['POST'])
 def receber_dados():
@@ -94,15 +83,17 @@ def fornecer_ultimos_dados():
     else:
         return jsonify({})
 
+# --- ENDPOINT PARA O HISTÓRICO ---
 @app.route('/api/historico')
 def fornecer_historico():
     conn = get_db_connection()
     if not conn:
-        return jsonify([]) 
+        return jsonify([]) # Retorna uma lista vazia em caso de erro
 
     with conn.cursor() as cur:
+        # Busca os 10 últimos registros, do mais novo para o mais antigo
         cur.execute("SELECT umidade, vibracao, botao, timestamp FROM leituras ORDER BY id DESC LIMIT 10")
-        resultados = cur.fetchall() 
+        resultados = cur.fetchall() # Pega TODOS os resultados
     conn.close()
     
     historico = []
@@ -114,14 +105,14 @@ def fornecer_historico():
             "timestamp": leitura[3].isoformat()
         })
     
-    return jsonify(historico) 
+    return jsonify(historico) # Retorna a lista de registros
+# --- FIM DO ENDPOINT ---
 
 @app.route('/')
 def dashboard():
     return render_template('index.html')
 
 if __name__ == '__main__':
-    # Esta parte agora é só para o seu teste local
-    print("Iniciando servidor localmente em http://0.0.0.0:5000")
-    # init_db() não é mais necessário aqui, pois já rodou no topo
+    init_db()
+    # Roda o servidor escutando em todos os IPs (0.0.0.0) para acesso pelo celular
     app.run(host='0.0.0.0', debug=True)
