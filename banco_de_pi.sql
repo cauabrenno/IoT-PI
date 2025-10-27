@@ -1,0 +1,12 @@
+
+
+
+CREATE TABLE leituras (
+	id SERIAL PRIMARY KEY,
+	umidade INTEGER,
+	vibracao INTEGER,
+	botao INTEGER,
+	timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+	);
+
+SELECT * FROM leituras
