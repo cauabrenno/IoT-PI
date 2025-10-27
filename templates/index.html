@@ -7,7 +7,7 @@
     <title>Dashboard de Monitoramento</title>
 
 <style>
-        /* 1. Reset Básico e Nova Fonte */
+
         * {
             margin: 0;
             padding: 0;
@@ -19,11 +19,9 @@
             background-color: #f4f7f6;
             color: #333;
             line-height: 1.6;
-            /* Garante que NADA vaze */
             overflow-x: hidden; 
         }
 
-        /* 2. Layout Principal do Dashboard */
         .dashboard { 
             max-width: 1300px;
             margin: 40px auto; 
@@ -31,7 +29,7 @@
             width: 100%; 
         }
         
-        /* ... (código do header, main-content, cards - tudo igual) ... */
+
         .dashboard-header {
             display: flex;
             justify-content: space-between;
@@ -96,7 +94,6 @@
         .card.perigo { border-left-color: #c62828; }
         .card.perigo .card-content p, .card.perigo .card-icon { color: #c62828; }
         
-        /* 6. Bloco da Tabela */
         .table-container {
             flex: 2; 
             min-width: 400px;
@@ -121,11 +118,10 @@
             border-bottom: 1px solid #eee; 
             text-align: left;
             
-            /* A CORREÇÃO MÁGICA: */
-            /* Força a quebra de palavras longas (como o timestamp) */
+
             overflow-wrap: break-word;
             word-wrap: break-word;
-            -ms-word-break: break-all; /* Suporte antigo */
+            -ms-word-break: break-all; 
             word-break: break-word; 
         }
         th {
@@ -139,27 +135,26 @@
         tbody tr:last-child td { border-bottom: none; }
         tbody tr:hover { background-color: #f8f9fa; }
 
-        /* 7. Responsividade para Celulares (COM TODAS AS CORREÇÕES) */
         @media (max-width: 900px) {
             
             .dashboard {
-                /* 1. Tira as margens laterais 'auto' do desktop */
+
                 margin: 20px 10px;
                 
-                /* 2. Força o dashboard a NÃO ser mais largo que 100% da tela */
+
                 max-width: 100%;
                 
-                /* 3. Tira o 'width: 100%' para que ele obedeça as margens */
+
                 width: auto; 
                 
                 padding: 15px;     
             }
 
             .main-content {
-                flex-direction: column; /* Empilha os blocos */
+                flex-direction: column;
             }
 
-            /* 4. Reseta o min-width para os filhos */
+
             .cards-container,
             .table-container {
                 min-width: 0; 
@@ -167,7 +162,7 @@
 
             .dashboard-header {
                 flex-direction: column;
-                align-items: flex-start; /* Alinha o título à esquerda */
+                align-items: flex-start; 
                 gap: 10px;
             }
 
@@ -236,11 +231,7 @@
         </div>
     </div>
     <script>
-        // --- INÍCIO DA MUDANÇA ---
-        // Trocamos a trava "alarmeDisparado"
-        // por uma que guarda o carimbo de data/hora
         let ultimoTimestampNotificado = null;
-        // --- FIM DA MUDANÇA ---
 
         function mostrarNotificacao(corpo) {
             if (Notification.permission === "granted") {
@@ -261,11 +252,10 @@
 
         async function buscarDados() {
             try {
-                // ... (código de busca de dados, preenchimento de cards e tabela)
                 const responseLive = await fetch('/api/ultimos_dados');
                 const dadosLive = await responseLive.json();
 
-                // Se não houver dados, não faz nada
+
                 if (!dadosLive.timestamp) {
                     return;
                 }
@@ -311,14 +301,12 @@
                     }
                 }
 
-                // --- INÍCIO DA LÓGICA DE NOTIFICAÇÃO CORRIGIDA ---
+
 
                 const estaEmPerigo = (dadosLive.umidade >= LIMITE_PERIGO) || (dadosLive.vibracao === 1) || (dadosLive.botao === 1);
 
                 if (estaEmPerigo) {
-                    // 1. Está em perigo. Agora, verificamos se é um DADO NOVO.
                     if (dadosLive.timestamp !== ultimoTimestampNotificado) {
-                        // É um dado de perigo NOVO!
 
                         let msg = "Sensor de vibração ou umidade em nível de perigo!";
                         if (dadosLive.botao === 1) msg = "O ALERTA MANUAL FOI ACIONADO!";
@@ -329,23 +317,22 @@
                         } else if (Notification.permission === "granted") {
                             // Permissão JÁ foi dada.
                             mostrarNotificacao(msg);
-                            ultimoTimestampNotificado = dadosLive.timestamp; // Trava o alarme para este timestamp
+                            ultimoTimestampNotificado = dadosLive.timestamp;
 
                         } else if (Notification.permission !== "denied") {
-                            // Permissão está "prompt" (pendente). PERGUNTA AGORA.
                             Notification.requestPermission().then((permission) => {
                                 if (permission === "granted") {
                                     mostrarNotificacao(msg);
-                                    ultimoTimestampNotificado = dadosLive.timestamp; // Trava o alarme
+                                    ultimoTimestampNotificado = dadosLive.timestamp;
                                 }
                             });
                         }
                     }
-                    // Se o timestamp for o mesmo, não faz nada (evita spam)
+                    
                 }
-                // Não precisamos mais do "else if" para resetar a trava.
+                
 
-                // --- FIM DA LÓGICA DE NOTIFICAÇÃO CORRIGIDA ---
+              
 
             } catch (error) {
                 console.error("Erro ao buscar dados:", error);
