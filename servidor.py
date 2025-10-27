@@ -2,7 +2,6 @@ from flask import Flask, request, jsonify, render_template
 import psycopg2
 import os
 
-# --- CONFIGURAÇÃO DA CONEXÃO COM O POSTGRESQL ---
 DB_NAME = "sensor_deslizamento"
 DB_USER = "postgres"
 DB_HOST = "localhost"
@@ -83,17 +82,15 @@ def fornecer_ultimos_dados():
     else:
         return jsonify({})
 
-# --- ENDPOINT PARA O HISTÓRICO ---
 @app.route('/api/historico')
 def fornecer_historico():
     conn = get_db_connection()
     if not conn:
-        return jsonify([]) # Retorna uma lista vazia em caso de erro
+        return jsonify([]) 
 
     with conn.cursor() as cur:
-        # Busca os 10 últimos registros, do mais novo para o mais antigo
         cur.execute("SELECT umidade, vibracao, botao, timestamp FROM leituras ORDER BY id DESC LIMIT 10")
-        resultados = cur.fetchall() # Pega TODOS os resultados
+        resultados = cur.fetchall() 
     conn.close()
     
     historico = []
@@ -105,8 +102,8 @@ def fornecer_historico():
             "timestamp": leitura[3].isoformat()
         })
     
-    return jsonify(historico) # Retorna a lista de registros
-# --- FIM DO ENDPOINT ---
+    return jsonify(historico) 
+
 
 @app.route('/')
 def dashboard():
@@ -114,5 +111,4 @@ def dashboard():
 
 if __name__ == '__main__':
     init_db()
-    # Roda o servidor escutando em todos os IPs (0.0.0.0) para acesso pelo celular
     app.run(host='0.0.0.0', debug=True)
