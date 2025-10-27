@@ -1,6 +1,3 @@
-
-
-
 CREATE TABLE leituras (
 	id SERIAL PRIMARY KEY,
 	umidade INTEGER,
