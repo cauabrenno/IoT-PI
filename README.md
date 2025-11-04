@@ -5,4 +5,4 @@
 ### Depois inicie em outro terminal a Ponte com o comando "python ponte.py" E cole os dados do monitor serial do tinkercad na ponte
 
 ## Imagem do Dashboard
-![erro](painel.png)
+![erro](Painel.png)
