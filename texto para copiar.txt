@@ -1,1 +1,0 @@
-umidade:400,vibracao:1,botao:0

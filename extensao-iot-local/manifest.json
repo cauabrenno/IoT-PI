@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "Ponte Tinkercad Local",
+  "version": "1.0",
+  "description": "Envia dados do Tinkercad para o Localhost.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*",
+    "https://www.tinkercad.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.tinkercad.com/*"],
+      "js": ["content.js"]
+    }
+  ]
+}
