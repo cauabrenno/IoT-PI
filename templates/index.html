@@ -1,210 +1,264 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Painel de Monitoramento IoT</title>
+    <title>Monitoramento de Deslizamento</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
     <style>
-        /* --- ESTILO GERAL --- */
+        /* --- VARIÁVEIS DE CORES --- */
         :root {
-            --bg-color: #e0e5ec;
-            --card-bg: #ffffff;
-            --primary-color: #6c5ce7;
-            --primary-hover: #5b4bc4;
-            --text-dark: #2d3436;
-            --text-light: #636e72;
-            --danger: #d63031;
-            --warning: #fdcb6e;
+            --bg-body: #f0f2f5;
+            --bg-card: #ffffff;
+            --bg-header: rgba(255, 255, 255, 0.8);
+            --text-main: #2d3436;
+            --text-sec: #636e72;
+            --accent: #6c5ce7;
+            --accent-hover: #5b4bc4;
+            --border: #dfe6e9;
+            --shadow: 0 4px 20px rgba(0,0,0,0.05);
+            
             --success: #00b894;
+            --warning: #fdcb6e;
+            --danger: #ff7675;
+            --danger-row: rgba(255, 118, 117, 0.15); /* Cor de fundo para alertas no histórico */
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        [data-theme="dark"] {
+            --bg-body: #1e1e2e;
+            --bg-card: #2a2a3c;
+            --bg-header: rgba(42, 42, 60, 0.8);
+            --text-main: #e2e2e2;
+            --text-sec: #a0a0b0;
+            --accent: #818cf8;
+            --accent-hover: #6366f1;
+            --border: #3f3f55;
+            --shadow: 0 4px 20px rgba(0,0,0,0.3);
+            --danger-row: rgba(255, 118, 117, 0.25);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; transition: background-color 0.3s, color 0.3s; }
 
         body {
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-dark);
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
             min-height: 100vh;
             padding: 20px;
+            padding-top: 90px; 
             overflow-x: hidden; 
         }
 
-        /* Cabeçalho */
+        /* HEADER */
         header {
+            position: fixed;
+            top: 0; left: 0; width: 100%;
+            background: var(--bg-header);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            z-index: 1000;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .header-content {
             max-width: 1200px;
-            margin: 0 auto 30px auto;
+            margin: 0 auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            padding: 0 20px;
         }
 
-        h1 { font-size: 1.8rem; color: var(--text-dark); }
+        .logo-area { display: flex; align-items: center; gap: 15px; }
+        .logo-icon { font-size: 1.8rem; color: var(--text-main); } 
+        h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.5px; }
+        .subtitle { font-size: 0.85rem; color: var(--text-sec); margin-top: -2px;}
 
-        /* Botão Atualizar */
-        .btn-purple {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
+        .theme-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            width: 40px; height: 40px;
+            border-radius: 50%;
             cursor: pointer;
-            transition: 0.2s;
-            box-shadow: 0 4px 6px rgba(108, 92, 231, 0.2);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
         }
-        .btn-purple:hover { background-color: var(--primary-hover); transform: translateY(-2px); }
+        .theme-btn:hover { background-color: var(--border); }
 
-        /* Grid de Cards */
+        /* GRID */
         .grid-container {
             max-width: 1200px;
             margin: 0 auto;
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 25px;
         }
 
-        /* O Card do Sensor */
+        /* CARDS */
         .card {
-            background-color: var(--card-bg);
-            border-radius: 12px;
+            background-color: var(--bg-card);
+            border-radius: 16px;
             padding: 25px;
-            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
             position: relative;
-            border-left: 5px solid #ccc;
-            transition: all 0.3s ease;
+            overflow: hidden;
         }
 
-        .card h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--text-light); border-bottom: 1px solid #eee; padding-bottom: 10px;}
-
-        .info-row {
-            display: flex;
-            align-items: center;
-            margin-bottom: 15px;
-            background: #f9f9f9;
-            border: 1px solid #eee;
-            padding: 10px;
-            border-radius: 6px;
-        }
-        .info-label { width: 120px; font-size: 0.9rem; color: var(--text-light); font-weight: 600; }
-        .info-value { font-weight: bold; font-size: 1.1rem; color: var(--text-dark); }
-
-        /* Cores de Status */
-        .card.normal { border-left-color: var(--success); }
-        .card.alerta { border-left-color: var(--warning); }
-        .card.perigo { border-left-color: var(--danger); }
-        .card.perigo .info-value { color: var(--danger); }
-
-        /* Botão Detalhes */
-        .card-footer {
-            display: flex;
-            justify-content: flex-end;
-            margin-top: 15px;
-        }
-        .btn-detalhes {
-            background-color: var(--primary-color);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        /* Card de Adicionar Sensor (+) */
-        .card-add {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border: 2px dashed #cbd5e0;
-            background: transparent;
-            cursor: pointer;
-            min-height: 280px;
-        }
-        .card-add:hover { background: rgba(255,255,255,0.3); border-color: var(--primary-color); }
-        .plus-icon { font-size: 3rem; color: #cbd5e0; font-weight: bold; }
-        .card-add:hover .plus-icon { color: var(--primary-color); }
-
-        /* --- MODAL (Janela de Detalhes) --- */
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0; top: 0;
-            width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background-color: white;
-            padding: 30px;
-            border-radius: 10px;
-            width: 90%;
-            max-width: 700px;
-            max-height: 85vh;
-            overflow-y: auto;
-            position: relative;
-        }
-        .close-modal {
+        .card::before {
+            content: '';
             position: absolute;
-            top: 15px; right: 20px;
-            font-size: 24px;
-            cursor: pointer;
-            color: #aaa;
+            top: 0; left: 0;
+            width: 6px; height: 100%;
+            background-color: var(--text-sec);
         }
 
-        @media (max-width: 900px) {
-            header { flex-direction: column; gap: 15px; text-align: center; }
+        .card-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--border);
+        }
+        .card-title { font-size: 1.1rem; font-weight: 600; color: var(--text-main); }
+        .status-badge {
+            font-size: 0.75rem; padding: 4px 10px; border-radius: 20px; font-weight: bold;
+            text-transform: uppercase; background-color: var(--border); color: var(--text-sec);
+        }
+
+        .data-row {
+            display: flex; align-items: center; justify-content: space-between;
+            margin-bottom: 12px; padding: 12px; border-radius: 10px;
+            background-color: rgba(0,0,0,0.03); 
+        }
+        [data-theme="dark"] .data-row { background-color: rgba(255,255,255,0.05); }
+
+        .data-label { display: flex; align-items: center; gap: 10px; color: var(--text-sec); font-size: 0.9rem; font-weight: 500; }
+        .data-label i { width: 20px; text-align: center; }
+        .data-value { font-weight: 700; color: var(--text-main); font-size: 1.1rem; }
+
+        .btn-detalhes {
+            width: 100%; margin-top: 15px; padding: 12px; border: none; border-radius: 10px;
+            background-color: var(--accent); color: white; font-weight: 600;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .btn-detalhes:hover { background-color: var(--accent-hover); transform: translateY(-1px); }
+
+        /* Estados dos Cards */
+        .card.normal::before { background-color: var(--success); }
+        .card.normal .status-badge { background-color: rgba(0, 184, 148, 0.15); color: var(--success); }
+        
+        .card.alerta::before { background-color: var(--warning); }
+        .card.alerta .status-badge { background-color: rgba(253, 203, 110, 0.15); color: var(--warning); }
+
+        .card.perigo { border: 1px solid var(--danger); box-shadow: 0 4px 25px rgba(255, 118, 117, 0.2); }
+        .card.perigo::before { background-color: var(--danger); }
+        .card.perigo .status-badge { background-color: var(--danger); color: white; }
+        .card.perigo .data-value { color: var(--danger); }
+
+        /* Card Add */
+        .card-add {
+            border: 2px dashed var(--border); background: transparent; box-shadow: none;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; min-height: 320px; opacity: 0.6;
+        }
+        .card-add:hover { opacity: 1; border-color: var(--accent); color: var(--accent); }
+        .plus-icon { font-size: 3rem; margin-bottom: 10px; }
+
+        /* --- MODAL --- */
+        .modal { display: none; position: fixed; z-index: 2000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px); align-items: center; justify-content: center; }
+        .modal-content { background-color: var(--bg-card); padding: 0; border-radius: 20px; width: 90%; max-width: 700px; max-height: 85vh; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+        
+        .modal-header { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
+        .close-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-sec); cursor: pointer; }
+        
+        .modal-body { padding: 25px; overflow-y: auto; }
+
+        /* Tabela */
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { text-align: left; padding: 12px; color: var(--text-sec); font-weight: 600; border-bottom: 2px solid var(--border); position: sticky; top: 0; background: var(--bg-card); }
+        td { padding: 12px; border-bottom: 1px solid var(--border); color: var(--text-main); }
+        tr:last-child td { border-bottom: none; }
+        
+        /* Destaque de Linha de Perigo */
+        tr.linha-perigo { background-color: var(--danger-row); }
+        tr.linha-perigo td { font-weight: bold; color: var(--text-main); }
+
+        @media (max-width: 768px) {
+            .header-content { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .theme-btn { position: absolute; top: 20px; right: 20px; }
             .grid-container { grid-template-columns: 1fr; }
-            .modal-content { padding: 15px; width: 95%; }
-            table { font-size: 0.8rem; }
-            th, td { padding: 5px; }
         }
     </style>
 </head>
 <body>
 
     <header>
-        <div>
-            <h1>Painel de Monitoramento - Sensor de Deslizamento</h1>
-            <p style="color: #777; font-size: 0.9rem;">Monitorando regiões em tempo real</p>
+        <div class="header-content">
+            <div class="logo-area">
+                <i class="fa-solid fa-mountain logo-icon"></i>
+                <div>
+                    <h1>Monitoramento de Deslizamento</h1>
+                    <p class="subtitle">Sistema de Alerta de Deslizamentos</p>
+                </div>
+            </div>
+            <button class="theme-btn" onclick="toggleTheme()" title="Mudar Tema">
+                <i class="fa-solid fa-moon"></i>
+            </button>
         </div>
     </header>
 
     <div class="grid-container" id="grid-sensores">
         <div class="card card-add" onclick="simularAdicionarSensor()">
-            <span class="plus-icon">+</span>
+            <i class="fa-solid fa-circle-plus plus-icon"></i>
+            <p>Adicionar Sensor</p>
         </div>
     </div>
 
     <div id="modal-detalhes" class="modal">
         <div class="modal-content">
-            <span class="close-modal" onclick="fecharModal()">&times;</span>
-            <h2 id="modal-titulo" style="margin-bottom: 20px; color: #333;">Detalhes</h2>
-            <div id="modal-corpo">Carregando...</div>
+            <div class="modal-header">
+                <div class="modal-title" id="modal-titulo">Detalhes</div>
+                <button class="close-btn" onclick="fecharModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" id="modal-corpo">
+                Carregando...
+            </div>
         </div>
     </div>
 
     <script>
         let sensoresSimulados = [];
-        let ultimoTimestampNotificado = null; // Variável para controlar a notificação e evitar spam
+        let ultimoTimestampNotificado = null;
 
-        // 1. Pede permissão para notificações ao carregar
+        function toggleTheme() {
+            const html = document.documentElement;
+            const icon = document.querySelector('.theme-btn i');
+            if (html.getAttribute('data-theme') === 'light') {
+                html.setAttribute('data-theme', 'dark');
+                icon.className = 'fa-solid fa-sun';
+            } else {
+                html.setAttribute('data-theme', 'light');
+                icon.className = 'fa-solid fa-moon';
+            }
+        }
+
         if ("Notification" in window && Notification.permission !== "denied") {
             Notification.requestPermission();
         }
 
-        // 2. Função de Notificação
         function enviarNotificacao(titulo, corpo) {
             if (Notification.permission === "granted") {
                 new Notification(titulo, {
                     body: corpo,
-                    icon: "https://i.imgur.com/h24jCj2.png" // Ícone de alerta
+                    icon: "https://cdn-icons-png.flaticon.com/512/564/564619.png" 
                 });
             }
         }
 
-        // --- FUNÇÃO PRINCIPAL: Carrega dados e gerencia notificações ---
         async function carregarDados() {
             try {
                 const response = await fetch('/api/todos_sensores_ultimos_dados');
@@ -214,208 +268,169 @@
                 const cardAdd = grid.querySelector('.card-add');
                 grid.innerHTML = '';
 
-                // 1. Desenha Sensores Reais
                 sensoresReais.forEach(dado => {
-                    
-                    // --- LINHA MÁGICA PARA REMOVER O NULL ---
-                    if (dado.sensor_id === null) return; 
-                    // ----------------------------------------
-
-                    const htmlCard = criarHTMLCard(dado.sensor_id, dado.umidade, dado.vibracao, dado.botao, false);
-                    grid.innerHTML += htmlCard;
+                    if (dado.sensor_id === null) return;
+                    grid.innerHTML += criarHTMLCard(dado.sensor_id, dado.umidade, dado.vibracao, dado.botao, false);
                 });
 
-                // 2. Desenha Sensores Simulados
                 sensoresSimulados.forEach(sim => {
-                    const htmlCard = criarHTMLCard(sim.id, sim.umidade, sim.vibracao, sim.botao, true);
-                    grid.innerHTML += htmlCard;
+                    grid.innerHTML += criarHTMLCard(sim.id, sim.umidade, sim.vibracao, sim.botao, true);
                 });
 
                 grid.appendChild(cardAdd);
 
-                // --- LÓGICA DE NOTIFICAÇÃO (NOVA) ---
-                // Verifica se existe algum sensor em perigo nos dados recebidos
-                // Ordenamos para pegar o evento mais recente de todos
+// --- Lógica de Notificação (CORRIGIDA) ---
                 const sensoresOrdenados = [...sensoresReais].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
                 
                 for (let sensor of sensoresOrdenados) {
-                    // Critérios de Perigo
+                    
+                    // 1. BLOQUEIA O FANTASMA (Se não tem ID, ignora)
+                    if (sensor.sensor_id === null) continue; 
+
+                    // 2. Verifica Perigo
                     if (sensor.umidade >= 700 || sensor.vibracao === 1 || sensor.botao === 1) {
                         
-                        // Verifica se esse perigo é "novo" (timestamp diferente do último notificado)
                         if (sensor.timestamp !== ultimoTimestampNotificado) {
-                            
                             let motivo = "";
-                            if(sensor.botao === 1) motivo = "Botão de Pânico!";
-                            else if(sensor.vibracao === 1) motivo = "Vibração Detectada!";
-                            else motivo = `Umidade Crítica (${sensor.umidade})`;
-
-                            enviarNotificacao(
-                                `ALERTA: Região ${sensor.sensor_id} em Perigo!`, 
-                                `${motivo} Verifique imediatamente.`
-                            );
                             
-                            // Atualiza a trava para não notificar o mesmo evento de novo
+                            // Prioridade da mensagem
+                            if(sensor.botao === 1) motivo = "Botão de Pânico Acionado!";
+                            else if(sensor.vibracao === 1) motivo = "Vibração Crítica Detectada!";
+                            else motivo = `Umidade Alta (${sensor.umidade})`;
+
+                            // Envia a notificação limpa
+                            enviarNotificacao(`⚠️ ALERTA: Região ${sensor.sensor_id}`, motivo);
+                            
                             ultimoTimestampNotificado = sensor.timestamp;
-                            break; // Notifica apenas o mais recente por ciclo
+                            break; 
                         }
                     }
                 }
 
-            } catch (error) {
-                console.error("Erro ao buscar dados:", error);
-            }
+            } catch (error) { console.error(error); }
         }
 
-        // --- FUNÇÃO AUXILIAR: Gera HTML do Card ---
         function criarHTMLCard(id, umidade, vibracao, botao, isSimulado) {
             let classeStatus = 'normal';
+            let textoStatus = 'Normal';
+            let iconeStatus = 'fa-check-circle';
+
             if (umidade >= 700 || vibracao === 1 || botao === 1) {
                 classeStatus = 'perigo';
+                textoStatus = 'PERIGO';
+                iconeStatus = 'fa-triangle-exclamation';
             } else if (umidade >= 300) {
                 classeStatus = 'alerta';
+                textoStatus = 'Atenção';
+                iconeStatus = 'fa-circle-exclamation';
             }
 
-            const txtVib = vibracao === 1 ? 'Detectada!' : 'Nenhuma';
-            const txtBot = botao === 1 ? 'ACIONADO!' : 'Normal';
+            const txtVib = vibracao === 1 ? '<span style="color:var(--danger)">Detectada</span>' : 'Estável';
+            const txtBot = botao === 1 ? '<span style="color:var(--danger)">ACIONADO</span>' : 'Normal';
+            const titulo = isSimulado ? `Região ${id} <small>(Simulado)</small>` : `Região ${id}`;
 
             return `
             <div class="card ${classeStatus}">
-                <h2>Região ${id} ${isSimulado ? '(Simulado)' : ''}</h2>
-                <div class="info-row">
-                    <span class="info-label">Umidade:</span>
-                    <span class="info-value">${umidade}</span>
+                <div class="card-header">
+                    <div class="card-title">${titulo}</div>
+                    <div class="status-badge"><i class="fa-solid ${iconeStatus}"></i> ${textoStatus}</div>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Vibração:</span>
-                    <span class="info-value">${txtVib}</span>
+                <div class="data-row">
+                    <div class="data-label"><i class="fa-solid fa-droplet"></i> Umidade</div>
+                    <div class="data-value">${umidade}</div>
                 </div>
-                <div class="info-row">
-                    <span class="info-label">Botão Manual:</span>
-                    <span class="info-value">${txtBot}</span>
+                <div class="data-row">
+                    <div class="data-label"><i class="fa-solid fa-wave-square"></i> Vibração</div>
+                    <div class="data-value">${txtVib}</div>
                 </div>
-                <div class="card-footer">
-                    <button class="btn-detalhes" onclick="abrirDetalhes(${id}, ${isSimulado})">Detalhes</button>
+                <div class="data-row">
+                    <div class="data-label"><i class="fa-solid fa-toggle-on"></i> Botão</div>
+                    <div class="data-value">${txtBot}</div>
                 </div>
+                <button class="btn-detalhes" onclick="abrirDetalhes(${id}, ${isSimulado})">
+                    <i class="fa-solid fa-chart-line"></i> Ver Histórico
+                </button>
             </div>
             `;
         }
 
-        // --- SIMULAÇÃO (Botão +) ---
         function simularAdicionarSensor() {
             const idFalso = 90 + sensoresSimulados.length;
-            const novoSensor = {
-                id: idFalso,
-                umidade: Math.floor(Math.random() * 1000),
-                vibracao: Math.random() > 0.8 ? 1 : 0,
-                botao: 0
-            };
+            const novoSensor = { id: idFalso, umidade: Math.floor(Math.random() * 1000), vibracao: 0, botao: 0 };
             sensoresSimulados.push(novoSensor);
-            alert(`Novo sensor (Região ${idFalso}) adicionado!`);
             carregarDados();
         }
 
-// --- Lógica do Modal de Detalhes (CORRIGIDA PARA HISTÓRICO ESPECÍFICO) ---
+        // --- FUNÇÃO ABRIR DETALHES (Com Resumo + Tabela Destacada) ---
         async function abrirDetalhes(id, isSimulado) {
             const modal = document.getElementById('modal-detalhes');
             const corpo = document.getElementById('modal-corpo');
             const titulo = document.getElementById('modal-titulo');
 
             modal.style.display = 'flex';
-            titulo.innerText = `Detalhes da Região ${id}`;
-            corpo.innerHTML = '<p style="text-align:center; padding:20px;">Carregando dados...</p>';
-
+            titulo.innerText = `Histórico - Região ${id}`;
+            
             if (isSimulado) {
-                corpo.innerHTML = '<p style="padding:20px; text-align:center;">Sensor simulado. Sem histórico real.</p>';
+                corpo.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-sec)"><i class="fa-solid fa-robot fa-3x"></i><br><br>Sensor simulado.</div>';
                 return;
             }
 
-            try {
-                // MUDANÇA AQUI: Agora pedimos o histórico SÓ DESSA REGIÃO
-                // Isso garante que sempre virão os dados certos, mesmo que outro sensor esteja spamando.
-                const response = await fetch(`/api/historico/${id}`);
-                const historicoSensor = await response.json();
+            corpo.innerHTML = '<div style="text-align:center; padding:40px;"><i class="fa-solid fa-circle-notch fa-spin fa-2x"></i></div>';
 
-                // O filtro manual (filter) não é mais necessário, pois o banco já filtrou
-                
-                if (historicoSensor.length === 0) {
-                    corpo.innerHTML = '<p style="padding:20px; text-align:center;">Nenhum histórico encontrado.</p>';
+            try {
+                const response = await fetch(`/api/historico/${id}`);
+                const dados = await response.json();
+
+                if (dados.length === 0) {
+                    corpo.innerHTML = '<div style="text-align:center; padding:40px;">Sem histórico.</div>';
                     return;
                 }
 
-                const atual = historicoSensor[0];
-                const textoVibAtual = atual.vibracao === 1 ? '<span style="color:red; font-weight:bold;">DETECTADA</span>' : '<span style="color:green;">Nenhuma</span>';
-                const textoBotaoAtual = atual.botao === 1 ? '<span style="color:red; font-weight:bold;">ACIONADO</span>' : '<span style="color:green;">Inativo</span>';
-                const corUmidade = atual.umidade >= 700 ? 'red' : (atual.umidade >= 300 ? 'orange' : 'green');
+                const atual = dados[0];
+                const txtVibAtual = atual.vibracao === 1 ? '<span style="color:var(--danger)">DETECTADA</span>' : 'Nenhuma';
+                const txtBotAtual = atual.botao === 1 ? '<span style="color:var(--danger)">ACIONADO</span>' : 'Inativo';
+                const corUmid = atual.umidade >= 700 ? 'var(--danger)' : (atual.umidade >= 300 ? 'var(--warning)' : 'var(--success)');
 
-                // 1. Painel de Resumo
+                // 1. RESUMO (TOPO) - IGUAL VOCÊ QUERIA
                 let html = `
-                    <div style="display: flex; justify-content: space-around; background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #e9ecef; flex-wrap: wrap; gap: 10px;">
-                        <div style="text-align: center; min-width: 80px;">
-                            <div style="font-size: 0.85rem; color: #666;">Umidade</div>
-                            <div style="font-size: 1.2rem; font-weight: bold; color: ${corUmidade};">${atual.umidade}</div>
-                        </div>
-                        <div style="text-align: center; min-width: 80px; border-left: 1px solid #ddd; padding-left: 10px;">
-                            <div style="font-size: 0.85rem; color: #666;">Vibração</div>
-                            <div style="font-size: 1.1rem;">${textoVibAtual}</div>
-                        </div>
-                        <div style="text-align: center; min-width: 80px; border-left: 1px solid #ddd; padding-left: 10px;">
-                            <div style="font-size: 0.85rem; color: #666;">Botão Manual</div>
-                            <div style="font-size: 1.1rem;">${textoBotaoAtual}</div>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; background-color: rgba(0,0,0,0.05); padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align:center;">
+                        <div><div style="font-size:0.8rem; color:var(--text-sec)">Umidade</div><div style="font-size:1.2rem; font-weight:bold; color:${corUmid}">${atual.umidade}</div></div>
+                        <div style="border-left:1px solid var(--border); padding-left:15px"><div style="font-size:0.8rem; color:var(--text-sec)">Vibração</div><div style="font-size:1.1rem; font-weight:bold;">${txtVibAtual}</div></div>
+                        <div style="border-left:1px solid var(--border); padding-left:15px"><div style="font-size:0.8rem; color:var(--text-sec)">Botão</div><div style="font-size:1.1rem; font-weight:bold;">${txtBotAtual}</div></div>
                     </div>
                 `;
 
-                // 2. Tabela de Histórico
-                html += '<h3 style="font-size:1rem; margin-bottom:10px; color:#333;">Histórico de Registros</h3>';
-                html += '<div style="max-height: 300px; overflow-y: auto;">';
-                html += '<table style="width:100%; text-align:left; border-collapse: collapse; font-size: 0.9rem;">';
+                // 2. TABELA (COM CORES DE ALERTA)
+                html += '<table><thead><tr><th>Data/Hora</th><th>Umidade</th><th>Vibração</th><th>Botão</th></tr></thead><tbody>';
                 
-                html += `
-                    <tr style="background:#eee; position: sticky; top: 0;">
-                        <th style="padding:10px;">Data e Hora</th>
-                        <th style="padding:10px;">Umidade</th>
-                        <th style="padding:10px;">Vibração</th>
-                        <th style="padding:10px;">Botão</th>
-                    </tr>`;
-                
-                historicoSensor.forEach(row => {
-                    let estiloBotao = row.botao === 1 ? 'color: red; font-weight: bold;' : 'color: #555;';
-                    let textoBotao = row.botao === 1 ? 'ACIONADO' : 'Inativo';
-                    let textoVib = row.vibracao === 1 ? 'Detectada' : 'Nenhuma';
+                dados.forEach(row => {
+                    let isDanger = row.botao === 1 || row.vibracao === 1 || row.umidade >= 700;
+                    let classeLinha = isDanger ? 'class="linha-perigo"' : ''; // Adiciona fundo vermelho se for alerta
+                    
                     let dataFormatada = new Date(row.timestamp).toLocaleString('pt-BR');
+                    let txtVib = row.vibracao === 1 ? '⚠️ Detectada' : 'Nenhuma';
+                    let txtBot = row.botao === 1 ? '🔴 ACIONADO' : 'Normal';
 
-                    html += `
-                        <tr style="border-bottom:1px solid #ddd;">
-                            <td style="padding:8px; color: #555;">${dataFormatada}</td>
-                            <td style="padding:8px; font-weight: bold;">${row.umidade}</td>
-                            <td style="padding:8px;">${textoVib}</td>
-                            <td style="padding:8px; ${estiloBotao}">${textoBotao}</td>
-                        </tr>`;
+                    html += `<tr ${classeLinha}>
+                        <td>${dataFormatada}</td>
+                        <td>${row.umidade}</td>
+                        <td>${txtVib}</td>
+                        <td>${txtBot}</td>
+                    </tr>`;
                 });
-                
-                html += '</table></div>';
+                html += '</tbody></table>';
                 corpo.innerHTML = html;
 
             } catch (e) {
-                console.error(e);
-                corpo.innerHTML = '<p style="color:red; padding:20px; text-align:center;">Erro ao carregar histórico.</p>';
+                corpo.innerHTML = '<p style="color:var(--danger)">Erro ao carregar.</p>';
             }
         }
 
-        function fecharModal() {
-            document.getElementById('modal-detalhes').style.display = 'none';
-        }
+        function fecharModal() { document.getElementById('modal-detalhes').style.display = 'none'; }
+        window.onclick = function(event) { if (event.target == document.getElementById('modal-detalhes')) fecharModal(); }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('modal-detalhes');
-            if (event.target == modal) {
-                modal.style.display = "none";
-            }
-        }
-
+        setInterval(carregarDados, 3000);
         carregarDados();
-        setInterval(carregarDados, 5000);
     </script>
 </body>
 </html>

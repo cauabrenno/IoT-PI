@@ -115,7 +115,7 @@ def fornecer_historico(sensor_id=None):
                 SELECT sensor_id, umidade, vibracao, botao, timestamp 
                 FROM leituras 
                 WHERE sensor_id = %s 
-                ORDER BY id DESC LIMIT 20
+                ORDER BY id DESC LIMIT 100
             """, (sensor_id,))
         else:
             # SE NÃO TIVER ID: Pega os últimos 20 gerais (comportamento antigo)
