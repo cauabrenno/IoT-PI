@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz SIDES - Ganhe um Brinde!</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #e0e5ec; padding: 20px; color: #333; }
+        .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        h1 { color: #6c5ce7; text-align: center; margin-bottom: 10px; }
+        p.intro { text-align: center; margin-bottom: 30px; color: #666; }
+        
+        .question { margin-bottom: 20px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+        .question p { font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+        
+        label { display: block; padding: 10px; background: #f8f9fa; margin-bottom: 5px; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+        label:hover { background: #e9ecef; }
+        input[type="radio"] { margin-right: 10px; }
+
+        button.btn-enviar {
+            width: 100%; padding: 15px; background: #6c5ce7; color: white; border: none;
+            border-radius: 8px; font-size: 1.2rem; font-weight: bold; cursor: pointer; margin-top: 20px;
+        }
+        button.btn-enviar:hover { background: #5b4bc4; }
+
+        /* Resultado */
+        #resultado { display: none; text-align: center; margin-top: 20px; }
+        .score { font-size: 3rem; font-weight: bold; color: #6c5ce7; }
+        .mensagem { font-size: 1.2rem; margin-top: 10px; }
+        .sucesso { color: #00b894; }
+        .falha { color: #d63031; }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+
+    <div class="container" id="quiz-box">
+        <h1>Quiz SIDES 🌍</h1>
+        <p class="intro">Acerte pelo menos <strong>7 questões</strong> para ganhar um brinde exclusivo!</p>
+
+        <form id="quizForm">
+            <div class="question">
+                <p>1. Qual o principal objetivo do SIDES?</p>
+                <label><input type="radio" name="q1" value="a"> Prever o tempo</label>
+                <label><input type="radio" name="q1" value="b"> Monitorar risco de deslizamentos</label>
+                <label><input type="radio" name="q1" value="c"> Medir a temperatura do ar</label>
+            </div>
+
+            <div class="question">
+                <p>2. Quais fatores o protótipo monitora?</p>
+                <label><input type="radio" name="q2" value="a"> Umidade e Vibração</label>
+                <label><input type="radio" name="q2" value="b"> Vento e Chuva</label>
+                <label><input type="radio" name="q2" value="c"> Calor e Luz</label>
+            </div>
+
+            <div class="question">
+                <p>3. O que acontece no nível crítico?</p>
+                <label><input type="radio" name="q3" value="a"> O sistema desliga</label>
+                <label><input type="radio" name="q3" value="b"> Apenas salva no banco</label>
+                <label><input type="radio" name="q3" value="c"> Alerta visual (Vermelho) e Notificação</label>
+            </div>
+
+            <div class="question">
+                <p>4. Onde o histórico de dados fica salvo?</p>
+                <label><input type="radio" name="q4" value="a"> Apenas na memória do Arduino</label>
+                <label><input type="radio" name="q4" value="b"> Banco de Dados (PostgreSQL)</label>
+                <label><input type="radio" name="q4" value="c"> Em um arquivo de texto no PC</label>
+            </div>
+
+            <div class="question">
+                <p>5. Qual linguagem roda no servidor (Back-end)?</p>
+                <label><input type="radio" name="q5" value="a"> Java</label>
+                <label><input type="radio" name="q5" value="b"> Python (Flask)</label>
+                <label><input type="radio" name="q5" value="c"> C++</label>
+            </div>
+
+            <div class="question">
+                <p>6. Se a internet do seu celular cair...</p>
+                <label><input type="radio" name="q6" value="a"> O sistema perde os dados</label>
+                <label><input type="radio" name="q6" value="b"> O servidor para de funcionar</label>
+                <label><input type="radio" name="q6" value="c"> O servidor continua salvando tudo</label>
+            </div>
+
+            <div class="question">
+                <p>7. Para que serve o botão manual?</p>
+                <label><input type="radio" name="q7" value="a"> Reiniciar o sistema</label>
+                <label><input type="radio" name="q7" value="b"> Acionar alerta de pânico/emergência</label>
+                <label><input type="radio" name="q7" value="c"> Desligar o alarme</label>
+            </div>
+
+            <div class="question">
+                <p>8. O sistema suporta múltiplas regiões?</p>
+                <label><input type="radio" name="q8" value="a"> Sim, é escalável</label>
+                <label><input type="radio" name="q8" value="b"> Não, só um sensor</label>
+            </div>
+
+            <div class="question">
+                <p>9. O Dashboard funciona no celular?</p>
+                <label><input type="radio" name="q9" value="a"> Não, só no PC</label>
+                <label><input type="radio" name="q9" value="b"> Sim, é responsivo</label>
+            </div>
+
+            <div class="question">
+                <p>10. O que significa IoT?</p>
+                <label><input type="radio" name="q10" value="a"> Internet das Coisas</label>
+                <label><input type="radio" name="q10" value="b"> Internet ou Tecnologia</label>
+                <label><input type="radio" name="q10" value="c"> Integração de Operações Técnicas</label>
+            </div>
+
+            <button type="button" class="btn-purple btn-enviar" onclick="calcularResultado()">ENVIAR RESPOSTAS</button>
+        </form>
+    </div>
+
+    <div id="resultado" class="container">
+        <h1>Resultado</h1>
+        <div class="score" id="nota">0/10</div>
+        <p class="mensagem" id="msgFinal">...</p>
+        <button class="btn-purple btn-enviar" onclick="location.reload()">Tentar Novamente</button>
+    </div>
+
+    <script>
+        function calcularResultado() {
+            // Gabarito
+            const respostasCertas = {
+                q1: 'b', q2: 'a', q3: 'c', q4: 'b', q5: 'b',
+                q6: 'c', q7: 'b', q8: 'a', q9: 'b', q10: 'a'
+            };
+
+            let acertos = 0;
+            const form = document.getElementById('quizForm');
+            const formData = new FormData(form);
+
+            // Verifica respostas
+            for (let [key, value] of formData.entries()) {
+                if (value === respostasCertas[key]) {
+                    acertos++;
+                }
+            }
+
+            // Mostra resultado
+            document.getElementById('quiz-box').style.display = 'none';
+            document.getElementById('resultado').style.display = 'block';
+            document.getElementById('nota').innerText = `${acertos}/10`;
+
+            const msgElement = document.getElementById('msgFinal');
+            
+            if (acertos >= 7) {
+                msgElement.innerText = "PARABÉNS! Você conhece tudo sobre o SIDES. Mostre essa tela para ganhar seu brinde! 🎁";
+                msgElement.className = "mensagem sucesso";
+                dispararConfetes();
+            } else {
+                msgElement.innerText = "Poxa, quase lá! Preste atenção na apresentação e tente de novo.";
+                msgElement.className = "mensagem falha";
+            }
+        }
+
+        function dispararConfetes() {
+            var duration = 3 * 1000;
+            var animationEnd = Date.now() + duration;
+            var defaults = { startVelocity: 30, spread: 360, ticks: 60, zIndex: 0 };
+
+            function random(min, max) { return Math.random() * (max - min) + min; }
+
+            var interval = setInterval(function() {
+                var timeLeft = animationEnd - Date.now();
+                if (timeLeft <= 0) return clearInterval(interval);
+                var particleCount = 50 * (timeLeft / duration);
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.1, 0.3), y: Math.random() - 0.2 } }));
+                confetti(Object.assign({}, defaults, { particleCount, origin: { x: random(0.7, 0.9), y: Math.random() - 0.2 } }));
+            }, 250);
+        }
+    </script>
+</body>
+</html>
